@@ -1,10 +1,21 @@
 import os
 from tqdm import tqdm
+import argparse
 
 
-def split_file(file_path, num_splits):
+def get_args():
+    # 因为这些信息是要显示在控制台的，所以如果用中文，对一些系统或者设备来说可能会乱码，所以用英文
+    parser = argparse.ArgumentParser('split your big file', add_help=False)
+    parser.add_argument('--data_path', default='/path/to/your_big_file', type=str,
+                        help="your big file's path")
+    parser.add_argument('--num_splits', default=10, type=int)
+    return parser.parse_args()
+
+def run_split(opts):
+    data_path = opts.data_path
+    num_splits = opts.num_splits
     # 获取大文件的大小
-    total_size = os.path.getsize(file_path)
+    total_size = os.path.getsize(data_path)
     # 计算每个文件的大致大小（有时候会出现不能整除的问题）
     part_size = total_size // num_splits
     """
@@ -21,16 +32,17 @@ def split_file(file_path, num_splits):
     """
     each_size_list = [part_size for _ in range(num_splits - 1)] + [part_size + remain_size]
     # 打开大文件，准备读取
-    with open(file_path, 'rb') as f:
+    with open(data_path, 'rb') as f:
         # for循环遍历，tqdm的作用是提供一个进度条，提高用户体验
         for i, each_size in enumerate(tqdm(each_size_list)):
             # 每一个小文件的文件名
-            part_file = f'{file_path}_{i}'  # 创建小文件名称
+            part_file = f'{data_path}_{i}'
             with open(part_file, 'wb') as p:
                 p.write(f.read(each_size))
 
 
+
+
 if __name__ == '__main__':
-    # 将要被分割的大文件的路径
-    file_path = "./projects/test.txt"
-    split_file(file_path, 10)
+    opts = get_args()
+    run_split(opts)
